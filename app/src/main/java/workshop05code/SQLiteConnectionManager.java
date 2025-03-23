@@ -10,24 +10,26 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public class SQLiteConnectionManager {
-    //Start code logging exercise
+    // Start code logging exercise
     static {
         // must set before the Logger
         // loads logging.properties from the classpath
         try {// resources\logging.properties
-            LogManager.getLogManager().readConfiguration(new FileInputStream("/home/faran/projects/comp3310/w05sqlinjectionpub-faranse82/resources/logging.properties"));
+            LogManager.getLogManager().readConfiguration(new FileInputStream(
+                    "/home/faran/projects/comp3310/w05sqlinjectionpub-faranse82/resources/logging.properties"));
         } catch (SecurityException | IOException e1) {
             e1.printStackTrace();
         }
     }
 
     private static final Logger logger = Logger.getLogger(SQLiteConnectionManager.class.getName());
-    //End code logging exercise
-    
+    // End code logging exercise
+
     private String databaseURL = "";
 
     private static final String WORDLE_DROP_TABLE_STRING = "DROP TABLE IF EXISTS wordlist;";
@@ -41,6 +43,7 @@ public class SQLiteConnectionManager {
             + " id integer PRIMARY KEY,\n"
             + " word text NOT NULL\n"
             + ");";
+
     /**
      * Set the database file name in the sqlite project to use
      *
@@ -61,12 +64,12 @@ public class SQLiteConnectionManager {
         try (Connection conn = DriverManager.getConnection(databaseURL)) {
             if (conn != null) {
                 DatabaseMetaData meta = conn.getMetaData();
-                System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created.");
+                logger.log(Level.INFO, "The driver name is {0}", meta.getDriverName());
+                logger.log(Level.INFO, "A new database has been created.");
 
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.WARNING, "SQL Error in createNewDatabase. Most likely driver issue.", e);
         }
     }
 
@@ -85,7 +88,7 @@ public class SQLiteConnectionManager {
                     return true;
                 }
             } catch (SQLException e) {
-                System.out.println(e.getMessage());
+                logger.log(Level.WARNING, "SQL Error in checkIfConnectionDefined", e);
                 return false;
             }
         }
@@ -110,7 +113,7 @@ public class SQLiteConnectionManager {
                 return true;
 
             } catch (SQLException e) {
-                System.out.println(e.getMessage());
+                logger.log(Level.WARNING, "SQL Error in createWorldTables", e);
                 return false;
             }
         }
@@ -123,18 +126,19 @@ public class SQLiteConnectionManager {
      * @param word the word to store
      */
     public void addValidWord(int id, String word) {
+        if (word.matches("^[a-z]{4}$")) {
 
-        String sql = "INSERT INTO validWords(id,word) VALUES ?, ?";
+            String sql = "INSERT INTO validWords(id,word) VALUES (?, ?)";
 
-        try (Connection conn = DriverManager.getConnection(databaseURL);
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    pstmt.setInt(1, id);
-                    pstmt.setString(2, word);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            try (Connection conn = DriverManager.getConnection(databaseURL);
+                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, id);
+                pstmt.setString(2, word);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                logger.log(Level.WARNING, "SQL Error in addValidWord", e);
+            }
         }
-
     }
 
     /**
@@ -143,25 +147,26 @@ public class SQLiteConnectionManager {
      * @param guess the string to check if it is a valid word.
      * @return true if guess exists in the database, false otherwise
      */
+
     public boolean isValidWord(String guess) {
-        
-        String sql = "SELECT count(id) as total FROM validWords WHERE word like ?";
+        if (guess.matches("^[a-z]{4}$")) {
+            String sql = "SELECT count(id) as total FROM validWords WHERE word LIKE ?";
+            try (Connection conn = DriverManager.getConnection(databaseURL);
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, guess);
+                ResultSet resultRows = stmt.executeQuery();
+                if (resultRows.next()) {
+                    int result = resultRows.getInt("total");
+                    return (result >= 1);
+                }
+                return false;
 
-        try (Connection conn = DriverManager.getConnection(databaseURL);
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, guess);
-            ResultSet resultRows = stmt.executeQuery();
-            if (resultRows.next()) {
-                int result = resultRows.getInt("total");
-                return (result >= 1);
+            } catch (SQLException e) {
+                logger.log(Level.WARNING, "SQL Error in isValidWord", e);
+                return false;
             }
-
-            return false;
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return false;
         }
-
+        logger.log(Level.INFO, guess);
+        return false;
     }
 }
