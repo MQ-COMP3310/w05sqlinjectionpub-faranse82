@@ -1,6 +1,8 @@
 package workshop05code;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -8,11 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-//Import for logging exercise
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -22,7 +19,7 @@ public class SQLiteConnectionManager {
         // must set before the Logger
         // loads logging.properties from the classpath
         try {// resources\logging.properties
-            LogManager.getLogManager().readConfiguration(new FileInputStream("resources/logging.properties"));
+            LogManager.getLogManager().readConfiguration(new FileInputStream("/home/faran/projects/comp3310/w05sqlinjectionpub-faranse82/resources/logging.properties"));
         } catch (SecurityException | IOException e1) {
             e1.printStackTrace();
         }
@@ -50,7 +47,7 @@ public class SQLiteConnectionManager {
      * @param fileName the database file name
      */
     public SQLiteConnectionManager(String filename) {
-        databaseURL = "jdbc:sqlite:sqlite/" + filename;
+        databaseURL = "jdbc:sqlite:/" + Paths.get(filename).toAbsolutePath().toString();
 
     }
 

@@ -1,13 +1,11 @@
 package workshop05code;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-//Included for the logging exercise
-import java.io.FileInputStream;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -21,7 +19,7 @@ public class App {
         // must set before the Logger
         // loads logging.properties from the classpath
         try {// resources\logging.properties
-            LogManager.getLogManager().readConfiguration(new FileInputStream("resources/logging.properties"));
+            LogManager.getLogManager().readConfiguration(new FileInputStream("/home/faran/projects/comp3310/w05sqlinjectionpub-faranse82/resources/logging.properties"));
         } catch (SecurityException | IOException e1) {
             e1.printStackTrace();
         }
@@ -34,7 +32,7 @@ public class App {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        SQLiteConnectionManager wordleDatabaseConnection = new SQLiteConnectionManager("words.db");
+        SQLiteConnectionManager wordleDatabaseConnection = new SQLiteConnectionManager("/home/faran/projects/comp3310/w05sqlinjectionpub-faranse82/app/sqlite/words.db");
 
         wordleDatabaseConnection.createNewDatabase("words.db");
         if (wordleDatabaseConnection.checkIfConnectionDefined()) {
@@ -52,7 +50,7 @@ public class App {
 
         // let's add some words to valid 4 letter words from the data.txt file
 
-        try (BufferedReader br = new BufferedReader(new FileReader("resources/data.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("/home/faran/projects/comp3310/w05sqlinjectionpub-faranse82/resources/data.txt"))) {
             String line;
             int i = 1;
             while ((line = br.readLine()) != null) {
